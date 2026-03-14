@@ -4,3 +4,7 @@ CMakeCache.txt
 Makefile
 make_install.cmake
 compile_commands.json
+.cache/
+.clangd
+.clang-format
+cmake_install.cmake

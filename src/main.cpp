@@ -30,7 +30,7 @@ void get_path()
     }
 }
 
-fs::path lookup_path_executables(std::string exe_str)
+fs::path lookup_path_executables(const std::string &exe_str)
 {
     for (fs::path path : PATH_DIRS)
     {
@@ -61,13 +61,26 @@ void handle_type_input(std::string input)
     else if (!PATH_DIRS.empty())
     {
         fs::path exec_path = lookup_path_executables(type_str);
-        if (exec_path != "")
+        if (!exec_path.empty())
         {
             std::cout << type_str << " is " << exec_path.string();
             return;
         }
     }
     std::cout << type_str << ": not found";
+}
+
+std::vector<std::string> split_input(const std::string &input)
+{
+    std::vector<std::string> commands;
+    std::istringstream iss(input);
+    std::string token;
+
+    while (iss >> token)
+    {
+        commands.push_back(token);
+    }
+    return commands;
 }
 
 int main()
@@ -89,7 +102,7 @@ int main()
         if (myStr == "exit")
             break;
 
-        if (myStr.starts_with("echo "))
+        else if (myStr.starts_with("echo "))
         {
             std::cout << myStr.substr(5, myStr.length());
         }
@@ -99,15 +112,26 @@ int main()
         }
         else
         {
-            // commands = split(myStr);
-
-            // for (const std::string& command : commands)
-            //{
-            //     if(command == "echo")
-
-            //}
-
-            std::cout << myStr << ": command not found";
+            std::vector<std::string> commands = split_input(myStr);
+            std::string exe_path = "";
+            int i = 0;
+            for (const std::string &command : commands)
+            {
+                if (i == 0)
+                    exe_path = std::string(lookup_path_executables(command));
+                else if (exe_path.empty())
+                    break;
+                else
+                {
+                    exe_path += " " + command;
+                }
+            }
+            if (!exe_path.empty())
+            {
+                std::system(exe_path.c_str());
+            }
+            else
+              std::cout << myStr << ": command not found";
         }
         std::cout << "\n$ ";
     }
