@@ -30,6 +30,25 @@ void get_path()
     }
 }
 
+fs::path lookup_path_executables(std::string exe_str)
+{
+    for (fs::path path : PATH_DIRS)
+    {
+        path = path / exe_str;
+
+        if (!fs::exists(path))
+            continue;
+
+        auto perms = fs::status(path).permissions();
+
+        bool exec = (perms & (fs::perms::owner_exec | fs::perms::group_exec |
+                              fs::perms::others_exec)) != fs::perms::none;
+        if (exec)
+            return path;
+    }
+    return "";
+}
+
 void handle_type_input(std::string input)
 {
     std::string type_str = input.substr(5, input.length());
@@ -41,27 +60,13 @@ void handle_type_input(std::string input)
     }
     else if (!PATH_DIRS.empty())
     {
-        for (fs::path path : PATH_DIRS)
+        fs::path exec_path = lookup_path_executables(type_str);
+        if (exec_path != "")
         {
-            path = path / type_str;
-
-            if (!fs::exists(path))
-                continue;
-
-            auto perms = fs::status(path).permissions();
-
-            bool exec =
-                (perms & (fs::perms::owner_exec | fs::perms::group_exec |
-                          fs::perms::others_exec)) != fs::perms::none;
-
-            if (exec)
-            {
-                std::cout << type_str << " is " << path.string();
-                return;
-            }
+            std::cout << type_str << " is " << exec_path.string();
+            return;
         }
     }
-
     std::cout << type_str << ": not found";
 }
 
